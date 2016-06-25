@@ -5,14 +5,18 @@
 #include <string.h>
 
 
-
-
+int count=0;
+int user_num=0;
+int friendship_num=0;
+int total_tweet_num=0;
 
 typedef struct User{
 	char ID[12];
 	char regDay[40];
 	char name[20];
 	struct List* friends;
+	int friends_num;
+	struct tweetList* tweetList;
 }User;
 
 
@@ -27,6 +31,12 @@ typedef struct List{
 	User* user;
 	struct List* next;
 }List;
+
+typedef struct tweetList{
+	char tweet[20];
+	struct tweetList* next;
+	int count;
+}tweetList;
 
 
 
@@ -96,7 +106,8 @@ void read_data_file(){
 	char userID[12];
 	char dayInfo[40];
 	char userName[20];
-	int user_num=0;
+	//int user_num=0; make it global variable
+	
 	char temp[12];
 	char temp2[12];
 	char userData;
@@ -106,9 +117,15 @@ void read_data_file(){
 	User* user_find;
 	User* user_find2;
 	User* aaa = (User*)malloc(sizeof(User));
-
-
+	
+	//int friendship_num=0; make it global variable
+	
 	//
+
+	//tweet.txt
+	List* word_list = (List*)malloc(sizeof(List));
+	char tweet_temp[30];
+	//int total_tweet_num=0;// make it global variable
 
 	user_list = (List*)malloc(sizeof(List));
 	user = (User*)malloc(sizeof(User));
@@ -200,10 +217,8 @@ void read_data_file(){
 	*/
 
 
-	//read friend.txt
-	user_list = root;
-	fp = fopen("friend.txt", "r");
 
+	/*
 	printf("\n----friend test----\n");
 	fgets(userID, 12 ,fp);
 	printf("%s", userID);
@@ -230,39 +245,131 @@ void read_data_file(){
 	add_frinedship(user_find, aaa);
 	printf("kkkkk\n");
 	printf("user1 : %s", user_find->ID);
-	printf("friend : %s",  user_find->friends->user->ID);
+	printf("friend : %s\n",  user_find->friends->user->ID);
 
-	//printf("friend2 : %s\n",  user_find->friends->next->user->ID);
-	/*
-	while(!feof(fp)){
-		
-		fgets(userID, 12, fp);
-		fgets(friendID, 12, fp);
+	printf("friend2 : %s\n",  user_find->friends->next->user->ID);
+	printf("... %s\n", user_find->friends->next->user->name);
 
-	}
 	*/
+
+	//read friend.txt
+	
+	fp = fopen("friend.txt", "r");
+
+	while(fgets(temp, 12, fp)!=NULL){
+		
+		strcpy(userID, temp);
+		user_list = root;
+		user_find = findUserByID(user_list, userID);
+		//find user, then find friend of him.
+		fgets(friendID, 12, fp);
+		user_list = root;
+		user_find2 = findUserByID(user_list, friendID);
+		
+		add_frinedship(user_find, user_find2);
+		friendship_num++;
+		//total friendship num
+
+		user_find->friends_num++;
+		//each user's friends num
+		fgetc(fp);
+	}
+
+	printf("friend read end!\n");
+	printf("friend test!\n");
+
+	user_list=root;
+	while(user_list->user->friends!=NULL){
+		printf("friends of %s", user_list->user->name);
+		printf("ID : %s", user_list->user->friends->user->ID);
+		printf("name : %s\n", user_list->user->friends->user->name);
+		
+		user_list->user->friends = user_list->user->friends->next;
+	}
+
+
+	//read tweet.txt//
+	fclose(fp);
+	fp = fopen("tweet.txt", "r");
+
+
+	while(fgets(user->ID, 12, fp)!=NULL){
+		user_list = root;
+		user = findUserByID(user_list, user->ID);
+
+		fgets(user->regDay,40, fp);
+		//writed date of tweet is not important, so just read it.
+		fgets(tweet_temp,30,fp);
+
+		printf("tweet : %s\n", tweet_temp);
+
+		fgetc(fp);
+	}
+
+
+
+	printf("Total users : %d\n", user_num);
+	printf("Total friendship record : %d\n", friendship_num);
+
+	
 	
 }
 
 void add_frinedship(User* user1, User* user2){
 	
 
-	
 	List* temp = (List*)malloc(sizeof(List));
+	List* temp2 = (List*)malloc(sizeof(List));
+
 	
+	int num=0;
+
 	temp->user=user2;
 	temp->next=NULL; 
+	//initialize list 'temp'
 	
+	//temp2 = user1->friends;
+	//root = user1->friends;
 	
-	while(user1->friends!=NULL){
-		user1->friends = user1->friends->next;
+
+	/*
+	if(count==1){
+		if(user1->friends!=NULL)
+			printf("count1, not null\n");
 	}
+
+	while(user1->friends!=NULL){
+		if(count==1)
+			printf("1111\n");
+
+		user1->friends = user1->friends->next;
+		num++;
+	}
+	
 	if(user1->friends!=NULL)
 		printf("friends NULL test, %s\n", user1->friends->user->ID);
-
+	
+	temp2 = user1->friends;
+	temp2->next=NULL;
 	user1->friends = temp;
-	printf("friendship added!\n");
+	user1->friends->next=temp2;
+	
+	if(user1->friends->next!=NULL)
+		printf("F2 test : %s\n", user1->friends->next->user->ID);
+	*/
 
+	if(user1->friends==NULL)
+		user1->friends=temp;
+	else{
+		temp2 = user1->friends;
+		user1->friends=temp;
+		user1->friends->next=temp2;
+	}
+	//user1->friends=root;
+
+
+	//printf("friendship added!\n");
+	count++;
 }
 
 void test(){
@@ -321,21 +428,21 @@ struct User* findUserByID(List* list, char newID[]){
 	
 
 	int num=0;
-	printf("newID : %s", newID);
+	//printf("newID : %s", newID);
 	
 
 	while(list->next!=NULL){
-		printf("user ID : %s", list->user->ID);
+		//printf("user ID : %s", list->user->ID);
 		
 		if(strcmp(list->user->ID, newID)==0){
-			printf("match!\n");
+			//printf("match!\n");
 			return list->user;
 		}
 		
 		list = list->next;
 		num++;
 	}
-	printf("Does not match!\n");
-	printf("num : %d\n", num);
+	//printf("Does not match!\n");
+	//printf("num : %d\n", num);
 	return 0;
 }
