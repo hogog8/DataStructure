@@ -25,6 +25,7 @@ void user_init(User* user){
 	strcpy(user->name,"(none)");
 	strcpy(user->regDay,"(none)");
 	user->friends=NULL;
+	user->tweetList =NULL;
 }
 
 typedef struct List{
@@ -123,8 +124,11 @@ void read_data_file(){
 	//
 
 	//tweet.txt
-	List* word_list = (List*)malloc(sizeof(List));
+	tweetList* word_list = (tweetList*)malloc(sizeof(tweetList));
 	char tweet_temp[30];
+	tweetList* temp_tweet_list = (tweetList*)malloc(sizeof(tweetList));
+	tweetList* root_tweet_list = (tweetList*)malloc(sizeof(tweetList));
+	int tweetcmp;
 	//int total_tweet_num=0;// make it global variable
 
 	user_list = (List*)malloc(sizeof(List));
@@ -288,24 +292,70 @@ void read_data_file(){
 	}
 
 
+
+
+
 	//read tweet.txt//
 	fclose(fp);
-	fp = fopen("tweet.txt", "r");
-
+	fp = fopen("word.txt", "r");
 
 	while(fgets(user->ID, 12, fp)!=NULL){
+		
 		user_list = root;
 		user = findUserByID(user_list, user->ID);
 
 		fgets(user->regDay,40, fp);
 		//writed date of tweet is not important, so just read it.
+		
 		fgets(tweet_temp,30,fp);
+		printf("tweet : %s", tweet_temp);
 
-		printf("tweet : %s\n", tweet_temp);
+		/*
+		if(user->tweetList==NULL){
+			printf("tweetList is NULL!\n"); 
+			user->tweetList = (tweetList*)malloc(sizeof(tweetList));
+			strcpy(user->tweetList->tweet, tweet_temp);			
+			user->tweetList->count++;
+			user->tweetList->next=NULL;
+			continue;
+		}
+		*/
+		
+		//strcmp를 통해 입력받은 트윗과 그 유저의 트윗중에 같은 값이 있는지 확인.
+		//같은 값이 아니면 next를 확인, 같은 값이면 그 값의 count를 증가.
+		
+		root_tweet_list = user->tweetList;
+	
+		while(user->tweetList!=NULL){
+			printf("11\n");
+			if( (tweetcmp=strcmp(user->tweetList->tweet,tweet_temp)) ==0){
+				user->tweetList->count++;
+				user->tweetList = root_tweet_list;
+				break;
+			}
 
+			user->tweetList = user->tweetList->next;
+		}
+			
+		strcpy(temp_tweet_list->tweet, tweet_temp);
+		temp_tweet_list->count++;
+		temp_tweet_list->next = root_tweet_list;
+		user->tweetList = temp_tweet_list;
+		
+		
+		//printf("tweet of %s.", user->name);
+		//printf("%s", user->tweetList->tweet);
 		fgetc(fp);
 	}
 
+	printf("\ntweet test!\n");
+	
+	user_list=root;
+
+	printf("user ID : %s", user_list->user->ID);
+	printf("his first tweet : %s", user_list->user->tweetList->tweet);
+	//printf("its count : %d", user_list->user->tweetList->count);
+	printf("second tweet : %s", user_list->user->tweetList->next->tweet);
 
 
 	printf("Total users : %d\n", user_num);
