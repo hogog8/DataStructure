@@ -26,6 +26,7 @@ void user_init(User* user){
 	strcpy(user->regDay,"(none)");
 	user->friends=NULL;
 	user->tweetList =NULL;
+	user->friends_num=0;
 }
 
 typedef struct List{
@@ -124,11 +125,15 @@ void read_data_file(){
 	//
 
 	//tweet.txt
-	tweetList* word_list = (tweetList*)malloc(sizeof(tweetList));
 	char tweet_temp[30];
+	int tweetcmp=1;
+
+	tweetList* word_list = (tweetList*)malloc(sizeof(tweetList));
 	tweetList* temp_tweet_list = (tweetList*)malloc(sizeof(tweetList));
 	tweetList* root_tweet_list = (tweetList*)malloc(sizeof(tweetList));
-	int tweetcmp;
+	tweetList* temp_tweet_list2 = (tweetList*)malloc(sizeof(tweetList));
+	
+	
 	//int total_tweet_num=0;// make it global variable
 
 	user_list = (List*)malloc(sizeof(List));
@@ -299,6 +304,72 @@ void read_data_file(){
 	fclose(fp);
 	fp = fopen("word.txt", "r");
 
+
+
+	word_list->next=NULL;
+	word_list->count=0;
+	//word_list 초기화?
+	root_tweet_list = word_list;
+	while(fgets(user->ID, 12, fp)!=NULL){
+
+		temp_tweet_list = (tweetList*)malloc(sizeof(tweetList));
+		fgets(user->regDay,40,fp);
+		fgets(tweet_temp, 30, fp);
+		printf("tweet_temp : %s", tweet_temp);
+		//트윗을 읽음.
+		fgetc(fp);
+
+		//temp_tweet_list
+		strcpy(temp_tweet_list->tweet, tweet_temp);
+		temp_tweet_list->next=NULL;
+		temp_tweet_list->count=0;
+		
+		word_list = root_tweet_list;
+		
+		
+		//word_list를 처음부터 끝까지 검사해서 중복되는 단어가 있으면 count만 증가.
+		//아니면 끝까지 검사만 해서 word_list의 마지막을 가리키기.
+
+		while(word_list!=NULL){
+			if( (tweetcmp=strcmp(word_list->tweet, tweet_temp)==0)){
+				word_list->count++;
+				break;
+			}
+			temp_tweet_list2=word_list;
+			word_list = word_list->next;
+		}
+		//printf("tweetcmp : %d\n", tweetcmp);
+		//비교를 했는데 같은 값이 나오지 않았을 경우(0이 아닌 경우), word_list에 추가.
+		//근데 위의 while문에서, word_list는 이미 마지막을 가리키고 있다.
+		//따라서 word_list에 바로 temp_tweet을 넣어주기만 하면 됨.
+		word_list = temp_tweet_list2;
+
+		if(!tweetcmp){
+			
+			word_list->next= temp_tweet_list;
+			word_list->next->count++;
+			word_list = word_list->next;
+
+		}
+	}
+
+	//리스트의 저장이 끝났으면 root를 다시 불러옴.
+	word_list = root_tweet_list;
+	
+	while(word_list->next!=NULL){
+		//printf("word_list : %s", word_list->tweet);
+
+		//if(word_list->count!=1)
+		//	printf("count : %d, word : %s", word_list->count, word_list->tweet);
+		word_list = word_list->next;
+	}
+	
+/*
+		temp_list->user = user;
+		temp_list->next = user_list;
+		user_list = temp_list;
+	*/
+	/*
 	while(fgets(user->ID, 12, fp)!=NULL){
 		
 		user_list = root;
@@ -310,44 +381,36 @@ void read_data_file(){
 		fgets(tweet_temp,30,fp);
 		printf("tweet : %s", tweet_temp);
 
-		/*
+		//0. 우선 처음 위치를 저장해 두고.
+		
+		
+		//1. 유저의 트윗리스트가 비어있으면 바로 트윗리스트에 추가한다.
 		if(user->tweetList==NULL){
-			printf("tweetList is NULL!\n"); 
 			user->tweetList = (tweetList*)malloc(sizeof(tweetList));
-			strcpy(user->tweetList->tweet, tweet_temp);			
+			strcpy(user->tweetList->tweet, tweet_temp);
 			user->tweetList->count++;
 			user->tweetList->next=NULL;
+			printf("Null list, added complet!\n");
 			continue;
 		}
-		*/
-		
-		//strcmp를 통해 입력받은 트윗과 그 유저의 트윗중에 같은 값이 있는지 확인.
-		//같은 값이 아니면 next를 확인, 같은 값이면 그 값의 count를 증가.
-		
-		root_tweet_list = user->tweetList;
-	
-		while(user->tweetList!=NULL){
-			printf("11\n");
-			if( (tweetcmp=strcmp(user->tweetList->tweet,tweet_temp)) ==0){
-				user->tweetList->count++;
-				user->tweetList = root_tweet_list;
-				break;
-			}
 
-			user->tweetList = user->tweetList->next;
-		}
+		//2. 비어있는게 아니면, 중복된 단어가 있는지 확인한 후
+		//중복된 단어가 있으면 count만 증가, 아니면 리스트의 처음에 추가
+		else{
 			
-		strcpy(temp_tweet_list->tweet, tweet_temp);
-		temp_tweet_list->count++;
-		temp_tweet_list->next = root_tweet_list;
-		user->tweetList = temp_tweet_list;
-		
-		
+			strcpy(temp_tweet_list->tweet, tweet_temp);
+			temp_tweet_list->count++;
+			temp_tweet_list->next = user->tweetList;
+			user->tweetList = temp_tweet_list;
+
+		}
+
 		//printf("tweet of %s.", user->name);
 		//printf("%s", user->tweetList->tweet);
 		fgetc(fp);
 	}
 
+	
 	printf("\ntweet test!\n");
 	
 	user_list=root;
@@ -356,6 +419,9 @@ void read_data_file(){
 	printf("his first tweet : %s", user_list->user->tweetList->tweet);
 	//printf("its count : %d", user_list->user->tweetList->count);
 	printf("second tweet : %s", user_list->user->tweetList->next->tweet);
+	*/
+
+
 
 
 	printf("Total users : %d\n", user_num);
