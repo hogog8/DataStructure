@@ -128,6 +128,7 @@ void read_data_file(){
 	char tweet_temp[150];
 	char userID_word[12];
 	int tweetcmp=1;
+	int i=0;
 
 	tweetList* word_list = (tweetList*)malloc(sizeof(tweetList));
 	tweetList* temp_word_list = (tweetList*)malloc(sizeof(tweetList));
@@ -135,6 +136,7 @@ void read_data_file(){
 	tweetList* root_word_list = (tweetList*)malloc(sizeof(tweetList));
 	
 	tweetList* temp_tweet_list = (tweetList*)malloc(sizeof(tweetList));
+	tweetList* temp_tweet_list2 = (tweetList*)malloc(sizeof(tweetList));
 	tweetList* root_tweet_list = (tweetList*)malloc(sizeof(tweetList));
 	
 	User* tweet_user = (User*)malloc(sizeof(User));
@@ -371,13 +373,19 @@ void read_data_file(){
 		tweet_user = findUserByID(user_list, userID_word);
 		printf("tweet_user ID : %s", tweet_user->ID);
 		//printf("tweet_user name : %s", tweet_user->name);
-		
-		
+		//free(temp_tweet_list);
+
+		temp_tweet_list = (tweetList*)malloc(sizeof(tweetList));
 		strcpy(temp_tweet_list->tweet, tweet_temp);
 		temp_tweet_list->next=NULL;
 
 
 		root_tweet_list = tweet_user->tweetList;
+		printf("tweetList : %s", tweet_user->tweetList->tweet);
+		if(i==1989)
+			printf("tweetList2 : %s", tweet_user->tweetList->next->tweet);
+		
+		printf("temp_tweet : %s", tweet_temp);
 
 		if(tweet_user->tweetList==NULL){
 			printf("tweetList is NULL!\n\n");
@@ -390,23 +398,30 @@ void read_data_file(){
 		//while문을 돌리면서 tweetList의 마지막을 찾는다.
 		//그전에, 같은 단어가 있으면 count만 증가시키고 break.
 		
+		tweetcmp=1;
 
 		while(tweet_user->tweetList!=NULL){
-			printf("tweetList : %s", tweet_user->tweetList->tweet);
-			printf("temp_tweet : %s", tweet_temp);
-			if((tweetcmp=strcmp(tweet_user->tweetList->tweet, tweet_temp))==0){
+			//printf("tweetList : %s", tweet_user->tweetList->tweet);
+			//printf("temp_tweet : %s", tweet_temp);
+			i++;
+			if( (tweetcmp = strcmp(tweet_user->tweetList->tweet, tweet_temp)) ==0){
 				tweet_user->tweetList->count++;
 				break;
 			}
 			//여기서도 if문에 안걸린 경우. 그냥 next를 확인
 			printf("11111111 : %s", tweet_user->tweetList->tweet);
+			temp_tweet_list2 = tweet_user->tweetList;
 			tweet_user->tweetList = tweet_user->tweetList->next;
 		}
 		//while문의 끝까지 돌았는데 일치하는 tweet이 없었으면, 리스트의 마지막을 가리키고 있다.
+		//그리고 일치하지 않았기 때문에 tweetcmp는 0이 아니다.
 		//거기에 temp_tweet_list를 넣어주면 됨.
-		if(!tweetcmp){
-			tweet_user->tweetList = temp_tweet_list;
+
+		tweet_user->tweetList = temp_tweet_list2;
+		if(tweetcmp){
+			tweet_user->tweetList->next = temp_tweet_list;
 			tweet_user->tweetList->count=1;
+			tweet_user->tweetList = tweet_user->tweetList->next;
 		}
 
 		//while문의 끝까지 돌았기 때문에 tweetList를 다시 root에 설정.
@@ -469,9 +484,6 @@ void read_data_file(){
 	}
 
 
-
-
-
 	//리스트의 저장이 끝났으면 root를 다시 불러옴.
 	word_list = root_word_list;
 	
@@ -488,7 +500,8 @@ void read_data_file(){
 	user->tweetList = root_tweet_list;
 	printf("22\n");
 	printf("user : %s", user->ID);
-	printf("bbb: %s", user->tweetList->next->tweet);
+	printf("user : %s", user->name);
+	printf("bbb: %s", user->tweetList->next->next->next->tweet);
 	/*
 	while(user->tweetList->next!=NULL){
 		printf("tweet_list : %s", user->tweetList->tweet);
