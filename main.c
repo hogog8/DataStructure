@@ -9,6 +9,9 @@ int count=0;
 int user_num=0;
 int friendship_num=0;
 int total_tweet_num=0;
+int min_friend=0;
+int max_friend=0;
+
 
 typedef struct User{
 	char ID[12];
@@ -47,62 +50,73 @@ void list_init(List* self){
 	self->next=NULL;
 }
 
+
+
 int print_menu();
-void read_data_file();
+void read_data_file(List* user_list, tweetList* word_list);
 void test();
 void add_frinedship(User* user1, User* user2);
 struct User* findUserByID(List* list, char newID[]);
 
+void display_stats(List* user_list, tweetList* word_list);
+
 int main(){
 
 	int menu=0;
-	
+
+	List* user_list = (List*)malloc(sizeof(List));
+	tweetList* word_list = (tweetList*)malloc(sizeof(tweetList));
+
+
+	//list_init(user_list);
+
 	while(menu!=99){
-		menu = print_menu();
+
+			puts("\t***************\t Menu \t*****************");
+			puts("\t0. Read data files");
+			puts("\t1. display statistics");
+			puts("\t2. Top 5 most tweeted words");
+			puts("\t3. Top 5 most tweeted users");
+			puts("\t4. Find users who tweeted a word (e.g., ’연세대’)");
+			puts("\t5. Find all people who are friends of the above users");
+			puts("\t6. Delete all mentions of a word");
+			puts("\t7. Delete all users who mentioned a word");
+			puts("\t8. Find strongly connected components");
+			puts("\t9. Find shortest path from a given user");
+			printf("\t99. Quit\n");
+			puts("\t********************************************");
+			printf("Select menu : ");
+
+			scanf("%d", &menu);
+
+			switch(menu){
+	
+			case 0:
+				read_data_file(user_list, word_list);
+				break;
+			case 1:
+				display_stats(user_list, word_list);
+				break;
+
+
+			case 99:
+				printf("Quit this program.\n");
+				return;
+
+			default:
+				puts("Wrong Input!\n. Select menu again.");
+			}
 	}
 	
 	return 0;
 }
 
 
-int print_menu(){
-
-	int option=0;
-
-	puts("\t***************\t Menu \t*****************");
-	puts("\t0. Read data files");
-	puts("\t1. display statistics");
-	puts("\t2. Top 5 most tweeted words");
-	puts("\t3. Top 5 most tweeted users");
-	puts("\t4. Find users who tweeted a word (e.g., ’연세대’)");
-	puts("\t5. Find all people who are friends of the above users");
-	puts("\t6. Delete all mentions of a word");
-	puts("\t7. Delete all users who mentioned a word");
-	puts("\t8. Find strongly connected components");
-	puts("\t9. Find shortest path from a given user");
-	printf("\t99. Quit\n");
-	puts("\t********************************************");
-	printf("Select menu : ");
-
-	scanf("%d", &option);
-
-	switch(option){
+void read_data_file(List* user_list, tweetList* word_list){
 	
-	case 0:
-		read_data_file();
-		break;
-	default:
-		puts("Wrong Input!\n. Select menu again.");
-	}
-
-	return option;
-}
-
-void read_data_file(){
-	
-	FILE* fp = fopen("user.txt", "r");
+	FILE* fp;  
 	User* user;
-	List* user_list;
+	//List* user_list;
 	List* temp_list;
 	List* root;
 	char userID[12];
@@ -116,13 +130,15 @@ void read_data_file(){
 
 	//friend.txt
 	char friendID[12];
+	char prevUserID[12];
+	int friend_num;
+	int sameuser=0;
 	User* user_find;
 	User* user_find2;
 	User* aaa = (User*)malloc(sizeof(User));
 	
 	//int friendship_num=0; make it global variable
 	
-	//
 
 	//tweet.txt
 	char tweet_temp[150];
@@ -130,7 +146,8 @@ void read_data_file(){
 	int tweetcmp=1;
 	int i=0;
 
-	tweetList* word_list = (tweetList*)malloc(sizeof(tweetList));
+	//tweetList* word_list = (tweetList*)malloc(sizeof(tweetList));
+	
 	tweetList* temp_word_list = (tweetList*)malloc(sizeof(tweetList));
 	tweetList* temp_word_list2 = (tweetList*)malloc(sizeof(tweetList));
 	tweetList* root_word_list = (tweetList*)malloc(sizeof(tweetList));
@@ -144,33 +161,31 @@ void read_data_file(){
 	
 	//int total_tweet_num=0;// make it global variable
 
-	user_list = (List*)malloc(sizeof(List));
+	//user_list = (List*)malloc(sizeof(List));
+	
 	user = (User*)malloc(sizeof(User));
+	
 	list_init(user_list);
-	user_init(user);
 
-	user_list->user = user;
+
+	//user_init(user);
+
+	//user_list->user = user;
 	//list initialize.
 	root = (List*)malloc(sizeof(List));
-	list_init(root);
+	
+	//list_init(root);
+	root = user_list;
 
 
-	//printf("%s, %s, %s \n", user->ID, user->name, user->regDay);
+	//read user.txt//
 	
-	
-	
+	fp= fopen("user.txt", "r");
 	while(fgets(temp,12,fp) !=NULL){
 
 		user = (User*)malloc(sizeof(User));
 		user_init(user);
 		temp_list = (List*)malloc(sizeof(List));
-		/*
-		if((temp=fgetc(fp))==EOF)
-		{
-			printf("End of file!\n");
-			break;
-		}
-		*/
 
 		//temp2[0]=temp;
 		//fgets(user->ID, 12, fp);
@@ -183,9 +198,17 @@ void read_data_file(){
 		fgets(user->name, 20, fp);
 		
 
-		printf("ID : %s", user->ID);
-		printf("Day : %s", user->regDay);
-		printf("Name : %s", user->name);
+		//printf("ID : %s", user->ID);
+		//printf("Day : %s", user->regDay);
+		//printf("Name : %s", user->name);
+
+
+		if(user_list->user==NULL){
+			printf("user list is null!\n");
+			user_list->user = user;
+			user_list->next = NULL;
+			continue;
+		}
 
 		temp_list->user = user;
 		temp_list->next = user_list;
@@ -212,7 +235,7 @@ void read_data_file(){
 	///* print all user list
 	
 	while(user_list->next!=NULL){
-		printf("ID : %s", user_list->user->ID);
+		//printf("ID : %s", user_list->user->ID);
 		user_list = user_list->next;
 	}
 	
@@ -220,62 +243,21 @@ void read_data_file(){
 	printf("\n---Read List---\n");
 
 
-	/*
-	while(user_list!=NULL){
-		printf("ID : %s", user_list->user->ID);
-		user_list->next = user_list;
-	}
-	*/
-
-
-	/*
-	printf("\n---friends test---\n");
-	test();
-	*/
-
-
-
-	/*
-	printf("\n----friend test----\n");
-	fgets(userID, 12 ,fp);
-	printf("%s", userID);
-	//fgets(userID, 12, fp);
-	//printf("%s", userID);
-
-	user_find = findUserByID(user_list, userID);
-	//find user, then find friend of him.
-
-	printf("find user : %s\n", user_find->ID);	
-	user_list = root;
-	fgets(userID, 12 ,fp);
-	printf("find user2 : %s\n", userID);
-	user_find2 = findUserByID(user_list,userID);
-	
-	add_frinedship(user_find, user_find2);
-	
-	printf("find friend..\n");
-	printf("user 1 : %sfriend : %s\n", user_find->ID, user_find->friends->user->ID);
-
-	user_init(aaa);
-	strcpy(aaa->ID, "123123");
-
-	add_frinedship(user_find, aaa);
-	printf("kkkkk\n");
-	printf("user1 : %s", user_find->ID);
-	printf("friend : %s\n",  user_find->friends->user->ID);
-
-	printf("friend2 : %s\n",  user_find->friends->next->user->ID);
-	printf("... %s\n", user_find->friends->next->user->name);
-
-	*/
-
-	//read friend.txt
+	//read friend.txt//
 	
 	fp = fopen("friend.txt", "r");
 
 	while(fgets(temp, 12, fp)!=NULL){
-		
+		friend_num=0;
+
+		if(strcmp(prevUserID,temp)==0){
+			sameuser=1;
+		}
+		else{
+			sameuser=0;
+		}
 		strcpy(userID, temp);
+		//printf("%s",userID);
 		user_list = root;
 		user_find = findUserByID(user_list, userID);
 		//find user, then find friend of him.
@@ -290,20 +272,28 @@ void read_data_file(){
 		user_find->friends_num++;
 		//each user's friends num
 		fgetc(fp);
+
+		if(!sameuser){
+			//user가 바뀌면 friend의 수를 비교해야함.
+		}
 	}
 
-	printf("friend read end!\n");
-	printf("friend test!\n");
+	
 
-	user_list=root;
+	printf("friend read end!\n");
+	printf("friend test!\n\n");
+	
+	//user_list=root;
+	/*
 	while(user_list->user->friends!=NULL){
 		printf("friends of %s", user_list->user->name);
 		printf("ID : %s", user_list->user->friends->user->ID);
-		printf("name : %s\n", user_list->user->friends->user->name);
-		
+		printf("name : %s", user_list->user->friends->user->name);
+		friend_num++;
 		user_list->user->friends = user_list->user->friends->next;
 	}
-
+	printf("friends_num : %d\n\n", friend_num);
+	*/
 
 
 
@@ -312,13 +302,14 @@ void read_data_file(){
 	fclose(fp);
 	fp = fopen("word.txt", "r");
 
-
+	//word_list = (tweetList*)malloc(sizeof(tweetList));
 
 	word_list->next=NULL;
 	word_list->count=0;
 	//word_list 초기화?
-	root_word_list = word_list;
 	
+	
+	root_word_list = word_list;
 
 	while(fgets(userID_word, 12, fp)!=NULL){
 	
@@ -335,11 +326,12 @@ void read_data_file(){
 		temp_word_list->next=NULL;
 		temp_word_list->count=0;
 		
-		word_list = root_word_list;
+		
 		
 		
 		//word_list를 처음부터 끝까지 검사해서 중복되는 단어가 있으면 count만 증가.
 		//아니면 끝까지 검사만 해서 word_list의 마지막을 가리키기.
+		word_list = root_word_list;
 
 		while(word_list!=NULL){
 			if( (tweetcmp=strcmp(word_list->tweet, tweet_temp)==0)){
@@ -362,6 +354,7 @@ void read_data_file(){
 			word_list = word_list->next;
 
 		}
+		total_tweet_num++;
 		//요기까지가 word_list에 저장을 한 것.
 
 		
@@ -369,26 +362,21 @@ void read_data_file(){
 		//이제 각 사용자들별로 tweet_list를 정리해야 함.
 		
 		user_list=root;
-		//printf("user : %s", userID_word);
 		tweet_user = findUserByID(user_list, userID_word);
-		printf("tweet_user ID : %s", tweet_user->ID);
+		//printf("tweet_user ID : %s", tweet_user->ID);
 		//printf("tweet_user name : %s", tweet_user->name);
-		//free(temp_tweet_list);
-
+		
 		temp_tweet_list = (tweetList*)malloc(sizeof(tweetList));
 		strcpy(temp_tweet_list->tweet, tweet_temp);
 		temp_tweet_list->next=NULL;
 
 
 		root_tweet_list = tweet_user->tweetList;
-		printf("tweetList : %s", tweet_user->tweetList->tweet);
-		if(i==1989)
-			printf("tweetList2 : %s", tweet_user->tweetList->next->tweet);
-		
-		printf("temp_tweet : %s", tweet_temp);
+		//printf("tweetList : %s", tweet_user->tweetList->tweet);	
+		//printf("temp_tweet : %s", tweet_temp);
 
 		if(tweet_user->tweetList==NULL){
-			printf("tweetList is NULL!\n\n");
+			//printf("tweetList is NULL!\n\n");
 			tweet_user->tweetList = temp_tweet_list;
 			tweet_user->tweetList->count=1;
 			
@@ -409,7 +397,6 @@ void read_data_file(){
 				break;
 			}
 			//여기서도 if문에 안걸린 경우. 그냥 next를 확인
-			printf("11111111 : %s", tweet_user->tweetList->tweet);
 			temp_tweet_list2 = tweet_user->tweetList;
 			tweet_user->tweetList = tweet_user->tweetList->next;
 		}
@@ -427,65 +414,31 @@ void read_data_file(){
 		//while문의 끝까지 돌았기 때문에 tweetList를 다시 root에 설정.
 		tweet_user->tweetList = root_tweet_list;
 		
-		
-		/*
-		//printf("user : %s", user);
-		strcpy(temp_tweet_list->tweet , tweet_temp);
-		temp_tweet_list->next=NULL;
-
-		root_tweet_list = user->tweetList;
-		//우선 root를 저장해두고
-
-		//사용자를 찾고, 사용자의 tweetList를 확인
-		//1. 트윗리스트가 비어있으면 바로 추가시키면 됨.
-		if(user->tweetList==NULL){
-			user->tweetList = (tweetList*)malloc(sizeof(tweetList));
-
-			//user->tweetList->tweet;
-			temp_tweet_list->count=1;
-			temp_tweet_list->next=NULL;
-			user->tweetList = temp_tweet_list;
-			user->tweetList->next = NULL;
-
-			continue;
-		}
-
-		//2. 트윗리스트가 비어있지 않으면 트윗리스트의 처음부터 끝까지 확인을 한 후, 같은 단어가 있었는지 없었는지 확인해야함.
-		else{
-			
-			user->tweetList=root_tweet_list;
-
-			while(user->tweetList!=NULL){
-				//2.1. 같은 단어가 있었으면 카운트만 증가시키고 다음 tweet으로 넘어가기.
-				if((tweetcmp = strcmp(user->tweetList->tweet, tweet_temp))==0){
-					user->tweetList->count++;
-					break;
-				}
-				//2.2 아니면 다음 단어를 확인, 다음 단어가 null이 나오면 while문을 빠져나감.
-				temp_word_list2 = user->tweetList;
-				user->tweetList = user->tweetList->next;
-			}
-		}
-		//3. 위와 비슷한 방식으로 한다.
-		user->tweetList = temp_word_list2;
-
-		if(!tweetcmp){
-			printf("11\n");
-
-			
-			user->tweetList ->next = temp_tweet_list;
-			user->tweetList->next->count=1;
-			user->tweetList = user->tweetList->next;
-
-			//user->tweetList = user->tweetList->next;
-		}
-		*/
-
+		//free(temp_word_list);
 	}
 
 
 	//리스트의 저장이 끝났으면 root를 다시 불러옴.
 	word_list = root_word_list;
+
+	printf("word_list : %s\n", word_list->tweet);
+	printf("count : %d\n", word_list->count);
+
+	word_list = word_list->next;
+	printf("word_list : %s", word_list->tweet);
+	printf("count : %d\n", word_list->count);
+	
+	word_list = word_list->next;
+	printf("word_list : %s", word_list->tweet);
+	printf("count : %d\n", word_list->count);
+
+	word_list = word_list->next;
+	printf("word_list : %s", word_list->tweet);
+	printf("count : %d\n", word_list->count);
+
+	word_list = word_list->next;
+	printf("word_list : %s", word_list->tweet);
+	printf("count : %d\n", word_list->count);
 	
 	//word_list 출력 테스트.
 	while(word_list->next!=NULL){
@@ -497,79 +450,20 @@ void read_data_file(){
 	}
 
 	//user->tweetList 출력 테스트.
+	
 	user->tweetList = root_tweet_list;
 	printf("22\n");
 	printf("user : %s", user->ID);
 	printf("user : %s", user->name);
 	printf("bbb: %s", user->tweetList->next->next->next->tweet);
-	/*
-	while(user->tweetList->next!=NULL){
-		printf("tweet_list : %s", user->tweetList->tweet);
-		user->tweetList = user->tweetList->next;
-	}
-	*/
-	
-	
-
-	/*
-	while(fgets(user->ID, 12, fp)!=NULL){
-		
-		user_list = root;
-		user = findUserByID(user_list, user->ID);
-
-		fgets(user->regDay,40, fp);
-		//writed date of tweet is not important, so just read it.
-		
-		fgets(tweet_temp,30,fp);
-		printf("tweet : %s", tweet_temp);
-
-		//0. 우선 처음 위치를 저장해 두고.
-		
-		
-		//1. 유저의 트윗리스트가 비어있으면 바로 트윗리스트에 추가한다.
-		if(user->tweetList==NULL){
-			user->tweetList = (tweetList*)malloc(sizeof(tweetList));
-			strcpy(user->tweetList->tweet, tweet_temp);
-			user->tweetList->count++;
-			user->tweetList->next=NULL;
-			printf("Null list, added complet!\n");
-			continue;
-		}
-
-		//2. 비어있는게 아니면, 중복된 단어가 있는지 확인한 후
-		//중복된 단어가 있으면 count만 증가, 아니면 리스트의 처음에 추가
-		else{
-			
-			strcpy(temp_word_list->tweet, tweet_temp);
-			temp_word_list->count++;
-			temp_word_list->next = user->tweetList;
-			user->tweetList = temp_word_list;
-
-		}
-
-		//printf("tweet of %s.", user->name);
-		//printf("%s", user->tweetList->tweet);
-		fgetc(fp);
-	}
-
-	
-	printf("\ntweet test!\n");
-	
-	user_list=root;
-
-	printf("user ID : %s", user_list->user->ID);
-	printf("his first tweet : %s", user_list->user->tweetList->tweet);
-	//printf("its count : %d", user_list->user->tweetList->count);
-	printf("second tweet : %s", user_list->user->tweetList->next->tweet);
-	*/
-
 
 
 
 	printf("Total users : %d\n", user_num);
 	printf("Total friendship record : %d\n", friendship_num);
+	printf("Total tweets : %d\n", total_tweet_num); 
 
-	
+	user_list =root;
 	
 }
 
@@ -703,4 +597,42 @@ struct User* findUserByID(List* list, char newID[]){
 	//printf("Does not match!\n");
 	//printf("num : %d\n", num);
 	return 0;
+}
+
+void display_stats(List* user_list, tweetList* word_list){
+
+
+	List* root = (List*)malloc(sizeof(List));
+	tweetList* tweet_root = (tweetList*)malloc(sizeof(tweetList));
+
+	root = user_list;
+	tweet_root = word_list;
+	//root를 저장.
+
+	if(!user_num){
+		printf("Read data first!\n");
+		return;
+	}
+
+
+	//1. find maximum and minmum friends.
+	/*
+	while(user_list!=NULL){
+
+
+	}
+	*/
+	printf("Average number of friends : %d\n", friendship_num/user_num);
+	printf("Minimum friends : %d\n", min_friend);
+	printf("Maxmimum friends : %d\n", max_friend);
+
+	
+	if(word_list==NULL)
+		printf("word_lsit is null!\n");
+
+	printf("word_list : %s", word_list->next->next->tweet);
+	
+	printf("user_list : %s", user_list->user->ID);
+	
+
 }
