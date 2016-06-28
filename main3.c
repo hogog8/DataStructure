@@ -7,9 +7,10 @@
 
 int total_user_num=0;
 int total_friendship_num=0;
+int total_tweet_num=0;
 
-void read_data_files(userList* userList, tweetList* wordList);
-
+void read_data_files(userList* user_list, tweetList* wordList, userList* copy1, tweetList* copy2);
+void display_stats(userList* userList, tweetList* wordList);
 
 int main()
 {
@@ -17,10 +18,9 @@ int main()
     int menu=0;
 
 	userList* user_list = NULL;
-	tweetList* wordList = (tweetList*)malloc(sizeof(tweetList));
-
-	if(user_list==NULL)
-		printf("제발제발");
+	tweetList* wordList = NULL;
+	userList* copy_user_list = (userList*)malloc(sizeof(userList));
+	tweetList* copy_wordLIst = (tweetList*)malloc(sizeof(tweetList));
 
 
 	while(1){
@@ -45,7 +45,18 @@ int main()
 		switch(menu){
 	
 		case 0:
-			read_data_files(user_list, wordList);
+			read_data_files(user_list, wordList, copy_user_list, copy_wordLIst);
+			if(user_list==NULL)
+				printf("user list is null!\n");
+
+			if(copy_user_list==NULL)
+				printf("copy list is null!\n");
+
+			break;
+		case 1:
+			if(wordList ==NULL)
+				printf("11\n");
+			display_stats(user_list, wordList);
 			break;
 
 		case 99:
@@ -61,7 +72,7 @@ int main()
 }
 
 
-void read_data_files(userList* user_list, tweetList* wordList){
+void read_data_files(userList* user_list, tweetList* wordList, userList* copy1, tweetList* copy2){
 
 	FILE* fp;
 
@@ -78,8 +89,10 @@ void read_data_files(userList* user_list, tweetList* wordList){
 	user* user2;
 	user* user3;
 	char friendID[12];
-	int num=0;
+	
 
+	//word.txt
+	char tempTweet[150];
 
 
 	fp = fopen("user.txt", "r");
@@ -105,23 +118,16 @@ void read_data_files(userList* user_list, tweetList* wordList){
 	}
 	fclose(fp);
 
-	PrintInorder(user_list);
-	
-
-
-
 	//read friend.txt//
 	fp=fopen("friend.txt", "r");
-
-
 	
 	root = user_list;
 	while(fgets(userID, 12, fp) !=NULL){
 
 		fgets(friendID, 12, fp);
 		fgetc(fp);
-		printf("userID : %s", userID);
-		printf("friendID : %s", friendID);
+		//printf("userID : %s", userID);
+		//printf("friendID : %s", friendID);
 		
 		user2 = FindUser(user_list, userID);
 		user3 = FindUser(user_list, friendID);
@@ -131,53 +137,59 @@ void read_data_files(userList* user_list, tweetList* wordList){
 
 	}
 
+	//read word.txt//
+	fp= fopen("word.txt","r");
+
 	
-	/*
-	fgets(userID, 12, fp);
-	fgets(friendID, 12, fp);
-	fgetc(fp);
-	printf("userid : %s", userID);
-	printf("friendid : %s", friendID);
+	while(fgets(userID,12,fp)!=NULL){
+		fgets(temp, 40, fp);
+		fgets(tempTweet, 150, fp);
+		fgetc(fp);
 
-	//user_list=root;
-	//user2 = (user*)malloc(sizeof(user));
+		user2 = FindUser(user_list, userID);
+		user2->tweetList = tweetInsert(user2->tweetList, tempTweet);
+		//사용자 마다의 트윗리스트
 
-	user2 = FindUser(user_list, userID);
-	//user_list=root;
-	user3 = FindUser(user_list, friendID);
+		wordList = tweetInsert(wordList, tempTweet);
+		//모든 트윗리스트.
+		total_tweet_num++;
+	}
+	
+	/*read tweet test.
+
 	printf("user2 : %s", user2->ID);
-	printf("user2 : %s", user2->name);
-	printf("user3 : %s", user3->ID);
-	printf("user3 : %s", user3->name);
-
-	add_friendship(user2, user3);
-
-
-	fgets(userID, 12, fp);
-	fgets(friendID, 12, fp);
-	fgetc(fp);
-
-	user3 = FindUser(user_list, friendID);
-
-	printf("user3 : %s", user3->ID);
-	add_friendship(user2, user3);
+	printf("tweet : %s", user2->tweetList->tweet);
+	printf("%s%s%s", user2->tweetList->right->tweet, user2->tweetList->right->right->tweet, user2->tweetList->right->right->right->tweet);
 	
-	
-	fgets(userID, 12, fp);
-	fgets(friendID, 12, fp);
-	fgetc(fp);
-	user2 = FindUser(user_list, userID);
-	user3 = FindUser(user_list, friendID);
-	printf("user3 : %s", user3->ID);
-	add_friendship(user2, user3);
+	printf("wordList\n");
+	printf("%s%s%s", wordList->tweet, wordList->right->tweet, wordList->right->right->tweet);
+	printf("%s%s%s", wordList->left->tweet, wordList->left->left->tweet , wordList->left->left->left->tweet);
 
-	printf("user2 friend.\n");
-	printf("%s", user2->friends->user->ID);
-	printf("%s", user2->friends->right->user->ID);
-	printf("%s", user2->friends->right->right->user->ID);
+	printf("\nwordList2\n");
+	printf("%s%d", wordList->tweet, wordList->count);
 	*/
-	
 
 
+	printf("user_list : %s\n", user_list->user->ID);
+
+	copy1 = user_list;
+	copy2 = wordList;
 }
 
+
+void display_stats(userList* user_list, tweetList* wordList){
+
+	int min_friend;
+
+
+
+	min_friend = user_list->user->friend_num;
+	//비교값을 위한 초기화.
+
+	min_friend = find_min(user_list, min_friend);
+
+
+	printf("average number of friends : %d", total_friendship_num / total_user_num);
+	printf("minimum friends : %d", min_friend);
+
+}
