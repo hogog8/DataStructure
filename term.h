@@ -7,6 +7,7 @@ typedef struct user{
 	char ID[12];
 	char name[20];
 	int friend_num;
+	int tweet_num;
 	struct tweetList* tweetList;
 	struct userList* friends;
 }user;
@@ -71,6 +72,7 @@ user* userInit(char ID[], char name[]){
 	strcpy(temp->ID, ID);
 	strcpy(temp->name, name);
 	temp->friend_num=0;
+	temp->tweet_num=0;
 	temp->friends=NULL;
 	temp->tweetList=NULL;
 
@@ -189,12 +191,61 @@ int find_min(userList* list, int min){
 	
 	
 	if(list!=NULL){
-		find_min(list->left, min);
+		min = find_min(list->left, min);
 		
+		//printf("user : %s", list->user->ID);
+		//printf("friends num : %d\n", list->user->friend_num);
 		if(list->user->friend_num < min)
 			min = list->user->friend_num;
 
-		find_min(list->right, min);
+		min = find_min(list->right, min);
 	}
+	return min;
 
+}
+
+int find_max(userList* list, int max){
+	if(list!=NULL){
+		max = find_max(list->left, max);
+
+		if(list->user->friend_num > max)
+			max = list->user->friend_num;
+
+		max = find_max(list->right, max);
+	}
+	return max;
+}
+
+int find_min_user(userList* list, int min){
+	
+	if(list!=NULL){
+
+	min = find_min_user(list->left, min);
+		
+
+	//printf("tweet num : %d\n", list->user->tweet_num);
+	
+	if(list->user->tweet_num < min)
+		min = list->user->tweet_num;
+
+	min = find_min_user(list->right, min);
+	}
+	return min;
+}
+
+int find_max_user(userList* list, int max){
+	
+	if(list!=NULL){
+
+	max = find_max_user(list->left, max);
+		
+
+	//printf("tweet num : %d\n", list->user->tweet_num);
+	
+	if(list->user->tweet_num > max)
+		max = list->user->tweet_num;
+
+	max = find_max_user(list->right, max);
+	}
+	return max;
 }

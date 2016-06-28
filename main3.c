@@ -14,6 +14,9 @@ void display_stats(userList* userList, tweetList* wordList);
 userList* read_user_info(userList* user_list);
 tweetList* read_word_info(userList* user_list, tweetList* wordList);
 
+tweetList* find_most_word(tweetList* wordList);
+userList* find_most_user(userList* user_list);
+
 int main() 
 {
 
@@ -21,9 +24,8 @@ int main()
 
 	userList* user_list = NULL;
 	tweetList* wordList = NULL;
-	userList* copy_user_list = (userList*)malloc(sizeof(userList));
-	tweetList* copy_wordLIst = (tweetList*)malloc(sizeof(tweetList));
-
+	
+	tweetList* temp_tweet=NULL;
 
 	while(1){
 
@@ -32,7 +34,7 @@ int main()
 		puts("\t1. display statistics");
 		puts("\t2. Top 5 most tweeted words");
 		puts("\t3. Top 5 most tweeted users");
-		puts("\t4. Find users who tweeted a word (e.g., â€™ì—°ì„¸ëŒ€â€™)");
+		puts("\t4. Find users who tweeted a word (e.g., ¡¯¿¬¼¼´ë¡¯)");
 		puts("\t5. Find all people who are friends of the above users");
 		puts("\t6. Delete all mentions of a word");
 		puts("\t7. Delete all users who mentioned a word");
@@ -50,7 +52,7 @@ int main()
 			//read_data_files(user_list, wordList);
 			user_list = read_user_info(user_list);
 			wordList = read_word_info(user_list, wordList);
-
+			printf("Read data done!\n\n");
 			break;
 		
 		
@@ -58,6 +60,9 @@ int main()
 		
 			display_stats(user_list, wordList);
 			break;
+
+		case 2:
+			find_most_word(wordList);
 
 		case 99:
 			printf("Quit this program.\n");
@@ -148,10 +153,10 @@ void read_data_files(userList* user_list, tweetList* wordList){
 
 		user2 = FindUser(user_list, userID);
 		user2->tweetList = tweetInsert(user2->tweetList, tempTweet);
-		//ì‚¬ìš©ìž ë§ˆë‹¤ì˜ íŠ¸ìœ—ë¦¬ìŠ¤íŠ¸
+		//»ç¿ëÀÚ ¸¶´ÙÀÇ Æ®À­¸®½ºÆ®
 
 		wordList = tweetInsert(wordList, tempTweet);
-		//ëª¨ë“  íŠ¸ìœ—ë¦¬ìŠ¤íŠ¸.
+		//¸ðµç Æ®À­¸®½ºÆ®.
 		total_tweet_num++;
 	}
 	
@@ -192,10 +197,6 @@ userList* read_user_info(userList* user_list){
 	user* user2;
 	user* user3;
 	char friendID[12];
-	
-
-	//word.txt
-	char tempTweet[150];
 
 
 	fp = fopen("user.txt", "r");
@@ -209,11 +210,11 @@ userList* read_user_info(userList* user_list){
 		fgetc(fp);
 
 
-		printf("\n\nuserID : %s", userID);
-		printf("userName : %s", userName);
+		//printf("\n\nuserID : %s", userID);
+		//printf("userName : %s", userName);
 
 		user1 = userInit(userID, userName);
-		printf("user : %s", user1->ID);
+		//printf("user : %s", user1->ID);
 	 
 		user_list = userInsert(user_list, user1);
 		total_user_num++;
@@ -261,10 +262,11 @@ tweetList* read_word_info(userList* user_list, tweetList* wordList){
 
 		user2 = FindUser(user_list, userID);
 		user2->tweetList = tweetInsert(user2->tweetList, tempTweet);
-		//ì‚¬ìš©ìž ë§ˆë‹¤ì˜ íŠ¸ìœ—ë¦¬ìŠ¤íŠ¸
+		user2->tweet_num++;
+		//»ç¿ëÀÚ ¸¶´ÙÀÇ Æ®À­¸®½ºÆ®
 
 		wordList = tweetInsert(wordList, tempTweet);
-		//ëª¨ë“  íŠ¸ìœ—ë¦¬ìŠ¤íŠ¸.
+		//¸ðµç Æ®À­¸®½ºÆ®.
 		total_tweet_num++;
 	}
 	return wordList;
@@ -272,22 +274,35 @@ tweetList* read_word_info(userList* user_list, tweetList* wordList){
 
 
 
-
-
-
 void display_stats(userList* user_list, tweetList* wordList){
 
 	int min_friend;
-
+	int max_friend;
+	int min_tweet;
+	int max_tweet;
 
 
 	min_friend = user_list->user->friend_num;
-	//ë¹„êµê°’ì„ ìœ„í•œ ì´ˆê¸°í™”.
+	max_friend = user_list->user->friend_num;
+	//ºñ±³°ªÀ» À§ÇÑ ÃÊ±âÈ­.
 
 	min_friend = find_min(user_list, min_friend);
+	max_friend = find_max(user_list, max_friend);
+
+	
+	min_tweet = user_list->user->tweet_num;
+	max_tweet = user_list->user->tweet_num;
+	min_tweet = find_min_user(user_list, min_tweet);
+	max_tweet = find_max_user(user_list, max_tweet);
 
 
-	printf("average number of friends : %d", total_friendship_num / total_user_num);
-	printf("minimum friends : %d", min_friend);
+	
+	printf("average number of friends : %.2lf\n", (float)total_friendship_num / total_user_num);
+	printf("minimum friends : %d\n", min_friend);
+	printf("maximum friends : %d\n", max_friend);
 
+	printf("average tweet per user : %.2lf\n", (float)total_tweet_num/total_user_num);
+	printf("min tweets : %d\n", min_tweet);
+	printf("max tweets : %d\n", max_tweet);
+	
 }
