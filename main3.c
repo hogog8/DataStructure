@@ -9,10 +9,12 @@ int total_user_num=0;
 int total_friendship_num=0;
 int total_tweet_num=0;
 
-void read_data_files(userList* user_list, tweetList* wordList, userList* copy1, tweetList* copy2);
+void read_data_files(userList* user_list, tweetList* wordList);
 void display_stats(userList* userList, tweetList* wordList);
+userList* read_user_info(userList* user_list);
+tweetList* read_word_info(userList* user_list, tweetList* wordList);
 
-int main()
+int main() 
 {
 
     int menu=0;
@@ -45,17 +47,15 @@ int main()
 		switch(menu){
 	
 		case 0:
-			read_data_files(user_list, wordList, copy_user_list, copy_wordLIst);
-			if(user_list==NULL)
-				printf("user list is null!\n");
-
-			if(copy_user_list==NULL)
-				printf("copy list is null!\n");
+			//read_data_files(user_list, wordList);
+			user_list = read_user_info(user_list);
+			wordList = read_word_info(user_list, wordList);
 
 			break;
+		
+		
 		case 1:
-			if(wordList ==NULL)
-				printf("11\n");
+		
 			display_stats(user_list, wordList);
 			break;
 
@@ -72,7 +72,7 @@ int main()
 }
 
 
-void read_data_files(userList* user_list, tweetList* wordList, userList* copy1, tweetList* copy2){
+void read_data_files(userList* user_list, tweetList* wordList){
 
 	FILE* fp;
 
@@ -172,9 +172,107 @@ void read_data_files(userList* user_list, tweetList* wordList, userList* copy1, 
 
 	printf("user_list : %s\n", user_list->user->ID);
 
-	copy1 = user_list;
-	copy2 = wordList;
 }
+
+
+userList* read_user_info(userList* user_list){
+	
+	FILE* fp;
+
+	user* user1;
+	userList* root;
+
+	//user.txt
+	char userID[12];
+	char userName[20];
+	char temp[40];
+
+	
+	//friend.txt
+	user* user2;
+	user* user3;
+	char friendID[12];
+	
+
+	//word.txt
+	char tempTweet[150];
+
+
+	fp = fopen("user.txt", "r");
+	
+
+	
+	while( fgets(userID, 12, fp)!=NULL){
+		
+		fgets(temp, 40, fp);
+		fgets(userName, 20, fp);
+		fgetc(fp);
+
+
+		printf("\n\nuserID : %s", userID);
+		printf("userName : %s", userName);
+
+		user1 = userInit(userID, userName);
+		printf("user : %s", user1->ID);
+	 
+		user_list = userInsert(user_list, user1);
+		total_user_num++;
+
+	}
+	fclose(fp);
+
+	//read friend.txt//
+	fp=fopen("friend.txt", "r");
+	
+	root = user_list;
+	while(fgets(userID, 12, fp) !=NULL){
+
+		fgets(friendID, 12, fp);
+		fgetc(fp);
+		//printf("userID : %s", userID);
+		//printf("friendID : %s", friendID);
+		
+		user2 = FindUser(user_list, userID);
+		user3 = FindUser(user_list, friendID);
+
+		add_friendship(user2, user3);
+		total_friendship_num++;
+
+	}
+
+	return user_list;
+}
+
+tweetList* read_word_info(userList* user_list, tweetList* wordList){
+	//read word.txt//
+	FILE* fp;
+	char userID[12];
+	char temp[40];
+	char tempTweet[150];
+	user* user2;
+
+	fp= fopen("word.txt","r");
+
+	
+	while(fgets(userID,12,fp)!=NULL){
+		fgets(temp, 40, fp);
+		fgets(tempTweet, 150, fp);
+		fgetc(fp);
+
+		user2 = FindUser(user_list, userID);
+		user2->tweetList = tweetInsert(user2->tweetList, tempTweet);
+		//사용자 마다의 트윗리스트
+
+		wordList = tweetInsert(wordList, tempTweet);
+		//모든 트윗리스트.
+		total_tweet_num++;
+	}
+	return wordList;
+}
+
+
+
+
 
 
 void display_stats(userList* user_list, tweetList* wordList){
