@@ -6,7 +6,7 @@
 
 
 int total_user_num=0;
-
+int total_friendship_num=0;
 
 void read_data_files(userList* userList, tweetList* wordList);
 
@@ -78,6 +78,7 @@ void read_data_files(userList* user_list, tweetList* wordList){
 	user* user2;
 	user* user3;
 	char friendID[12];
+	int num=0;
 
 
 
@@ -113,35 +114,25 @@ void read_data_files(userList* user_list, tweetList* wordList){
 	fp=fopen("friend.txt", "r");
 
 
-	/*
+	
 	root = user_list;
 	while(fgets(userID, 12, fp) !=NULL){
 
 		fgets(friendID, 12, fp);
 		fgetc(fp);
-
 		printf("userID : %s", userID);
 		printf("friendID : %s", friendID);
-
+		
 		user2 = FindUser(user_list, userID);
-		user3 = FindUser(user_list, userID);
+		user3 = FindUser(user_list, friendID);
 
 		add_friendship(user2, user3);
-		
+		total_friendship_num++;
+
 	}
-	
-	
-	user1 = user_list->user;
-	printf("user : %s", user_list->user);
-
-	printf("friend : %s", user1->friends);
-	printf("%s%s%s", user1->friends->right->user->ID, user1->friends->right->right->user->ID, user1->friends->right->right->right->user->ID);
-	*/
-
-
 
 	
-	
+	/*
 	fgets(userID, 12, fp);
 	fgets(friendID, 12, fp);
 	fgetc(fp);
@@ -170,12 +161,12 @@ void read_data_files(userList* user_list, tweetList* wordList){
 
 	printf("user3 : %s", user3->ID);
 	add_friendship(user2, user3);
-
+	
 	
 	fgets(userID, 12, fp);
 	fgets(friendID, 12, fp);
 	fgetc(fp);
-
+	user2 = FindUser(user_list, userID);
 	user3 = FindUser(user_list, friendID);
 	printf("user3 : %s", user3->ID);
 	add_friendship(user2, user3);
@@ -184,7 +175,7 @@ void read_data_files(userList* user_list, tweetList* wordList){
 	printf("%s", user2->friends->user->ID);
 	printf("%s", user2->friends->right->user->ID);
 	printf("%s", user2->friends->right->right->user->ID);
-	
+	*/
 	
 
 
