@@ -28,7 +28,7 @@ typedef struct userList{
 //BST의 insert 함수를 userList 형태로 변환.
 userList* userInsert(userList *list, user* user)
 {
-	
+
 	    if(list==NULL)
         {
 
@@ -45,7 +45,7 @@ userList* userInsert(userList *list, user* user)
         if( strcmp(user->ID,list->user->ID) >= 0)
         {
 			//printf("insert right\n");
-                list->right = userInsert(list->right, user);
+            list->right = userInsert(list->right, user);
         }
         else if( strcmp(user->ID,list->user->ID) < 0)
         {
@@ -68,7 +68,6 @@ userList* listInit(userList* list){
 user* userInit(char ID[], char name[]){
 
 	user* temp = (user*)malloc(sizeof(user));
-	printf("222\n");
 	strcpy(temp->ID, ID);
 	strcpy(temp->name, name);
 	temp->friend_num=0;
@@ -99,4 +98,103 @@ void PrintPreorder(userList* list)
         printf("%s ",list->user->ID);
         PrintPreorder(list->left);
         PrintPreorder(list->right);
+}
+
+
+user* FindUser(userList* list, char ID[])
+{
+	//printf("list : %s", list->user->ID);
+	//printf("ID : %s", ID);
+        if(list->user==NULL)
+        {
+                /* Element is not found */
+                return NULL;
+        }
+
+		
+        if( strcmp(ID, list->user->ID) > 0 )
+        {
+                /* Search in the right sub tree. */
+                return FindUser(list->right,ID);
+        }
+		
+        else if( strcmp(ID, list->user->ID) < 0)
+        {
+                /* Search in the left sub tree. */
+                return FindUser(list->left,ID);
+        }
+        else
+        {
+
+                /* Element Found */
+                return list->user;
+        }
+}
+
+
+void add_friendship(user* user1, user* user2){
+
+
+	//if(user1->friends==NULL)
+	//	printf("friends is null!\n");
+
+	user1->friends = userInsert(user1->friends, user2);
+	user1->friend_num++;
+
+
+	//printf("user1->friends : %s", user1->friends->user->ID);
+	//printf("friendship added!\n");
+}
+
+tweetList* tweetInsert(tweetList *list, char tweet[])
+{
+	//printf("Inserting tweet.\n");
+	    if(list==NULL)
+        {
+
+			tweetList* temp;
+			temp = (tweetList*)malloc(sizeof(tweetList));
+			//printf("list is null!\n");
+
+			strcpy(temp->tweet, tweet);
+			temp->left=NULL;
+			temp->right=NULL;
+			temp->count=1;
+			return temp;
+        }
+
+        if( strcmp(tweet , list->tweet) > 0)
+        {
+			//printf("insert right\n");
+            list->right = tweetInsert(list->right, tweet);
+        }
+        else if( strcmp(tweet,list->tweet) < 0)
+        {
+			//printf("insert left\n");
+                list->left = tweetInsert(list->left, tweet);
+        }
+
+		//strcmp==0, 즉 트윗리스트의 단어와 트윗이 같은 경우면 카운트만 1 증가시키면 된다.
+		else{
+			list->count++;
+		}
+		
+        /* Else there is nothing to do as the data is already in the tree. */
+        return list;
+}
+
+
+
+int find_min(userList* list, int min){
+	
+	
+	if(list!=NULL){
+		find_min(list->left, min);
+		
+		if(list->user->friend_num < min)
+			min = list->user->friend_num;
+
+		find_min(list->right, min);
+	}
+
 }
